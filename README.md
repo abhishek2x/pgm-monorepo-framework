@@ -25,17 +25,15 @@ The service has four main parts:
 
 ## Quick start
 
-From the project root:
+From the repository root:
 
 ```bash
-cd central-learning-service
-PYTHONPATH=src ./venv/bin/pytest -q
+PYTHONPATH=src ./venv/bin/python -m pytest -q
 ```
 
 If you want to run the example benchmark script:
 
 ```bash
-cd central-learning-service
 PYTHONPATH=src python experiments/run.py --config experiments/configs/pilot.yaml
 ```
 

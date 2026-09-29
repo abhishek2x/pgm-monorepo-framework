@@ -3,9 +3,9 @@ requires = ["setuptools>=61.0"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "central-learning-service"
+name = "procedural-graph-mesh"
 version = "0.1.0"
-description = "Central Learning Framework for Collaborative Coding Agents"
+description = "Procedural graph mesh for team coding agents"
 authors = [
     {name = "Research Team"}
 ]
