@@ -1,6 +1,6 @@
-# Central Learning Service
+# Procedural Graph Mesh for Team Agents
 
-This project is a small prototype for a central learning layer that watches agent work, turns successful experiences into reusable procedures, and lets future tasks pull back only the procedures that are relevant to their project and goal.
+This project is a small prototype for a procedural graph system that watches agent work, turns successful experiences into reusable procedures, and lets future tasks pull back only the patterns that are relevant to their project and goal.
 
 The code is intentionally compact. It is meant to show the shape of the system rather than act as a full production product.
 
