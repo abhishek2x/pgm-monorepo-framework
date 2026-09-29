@@ -1,0 +1,13 @@
+experiment:
+  name: "pilot_benchmark"
+  model: "mock_model"
+  repository: "mock/repo"
+  commit: "abc1234"
+  baseline: "central_learning"  # Options: independent, shared_memory, static_kg, central_learning
+  seed: 42
+  num_tasks: 20
+  users:
+    - user_a
+    - user_b
+    - user_c
+    - user_d

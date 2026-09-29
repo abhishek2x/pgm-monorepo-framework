@@ -216,3 +216,9 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+# Research paper private files
+explanation.md
+IMPLEMENTATION_PLAN.md
+implementation_prompt.md
+Implementation_validation_spec.md
