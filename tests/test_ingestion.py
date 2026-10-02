@@ -27,5 +27,7 @@ def test_trajectory_schema_validation():
     )
     
     assert trajectory.user_id == "user_1"
+    assert trajectory.schema_version == "1.0"
+    assert trajectory.trajectory_id
     assert len(trajectory.steps) == 1
     assert trajectory.steps[0].tool_calls[0].tool_name == "bash"

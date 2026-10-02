@@ -49,6 +49,9 @@ coverage.xml
 *.py.cover
 .hypothesis/
 .pytest_cache/
+experiments/runs/
+procedural_graph_mesh.db
+trajectories.db
 cover/
 
 # Translations
@@ -222,3 +225,4 @@ explanation.md
 IMPLEMENTATION_PLAN.md
 implementation_prompt.md
 Implementation_validation_spec.md
+paper.tex

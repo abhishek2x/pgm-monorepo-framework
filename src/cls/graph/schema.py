@@ -1,5 +1,5 @@
-from datetime import datetime
-from typing import List, Optional
+from datetime import datetime, timezone
+from typing import List, Literal, Optional
 
 from pydantic import BaseModel, Field
 
@@ -18,8 +18,21 @@ class ProcedureNode(BaseModel):
     confidence: float = 0.0
     repository_version: str
     created_from_users: List[str] = Field(default_factory=list)
-    created_at: datetime = Field(default_factory=datetime.utcnow)
-    updated_at: datetime = Field(default_factory=datetime.utcnow)
+    source_trajectory_ids: List[str] = Field(default_factory=list)
+    evidence: List["ProcedureEvidence"] = Field(default_factory=list)
+    validation_status: Literal["candidate", "validated", "rejected", "stale", "retired"] = "candidate"
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    updated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+
+
+class ProcedureEvidence(BaseModel):
+    """One independently attributable observation supporting a procedure."""
+
+    trajectory_id: str
+    user_id: str
+    repository_version: str
+    successful: bool
+    step_ids: List[str] = Field(default_factory=list)
 
 
 class ProcedureEdge(BaseModel):

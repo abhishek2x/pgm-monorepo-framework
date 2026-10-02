@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Any, Dict
 
 from cls.agents.base import BaseAgentAdapter
@@ -21,7 +21,7 @@ class CodexAdapter(BaseAgentAdapter):
     def start_task(self, project_id: str, task_id: str) -> str:
         self.active_tasks[task_id] = {
             "project_id": project_id,
-            "start_time": datetime.utcnow(),
+            "start_time": datetime.now(timezone.utc),
             "messages": [],
             "steps": [],
             "files_touched": [],
@@ -45,7 +45,7 @@ class CodexAdapter(BaseAgentAdapter):
             raise ValueError(f"Task {task_id} not found.")
 
         data = self.active_tasks[task_id]
-        latency = (datetime.utcnow() - data["start_time"]).total_seconds()
+        latency = (datetime.now(timezone.utc) - data["start_time"]).total_seconds()
 
         trajectory = Trajectory(
             user_id=self.user_id,

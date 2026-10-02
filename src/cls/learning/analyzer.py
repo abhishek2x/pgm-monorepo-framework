@@ -19,6 +19,7 @@ class EpisodeAnalyzer:
                 successful_steps.append(step)
 
         return {
+            "trajectory_id": trajectory.trajectory_id,
             "task_id": trajectory.task_id,
             "project_id": trajectory.project_id,
             "user_id": trajectory.user_id,

@@ -1,13 +1,41 @@
 experiment:
-  name: "pilot_benchmark"
-  model: "mock_model"
-  repository: "mock/repo"
-  commit: "abc1234"
-  baseline: "central_learning"  # Options: independent, shared_memory, static_kg, central_learning
+  name: "pipeline_smoke_test"
+  purpose: "smoke_test_only_not_research_evidence"
+  project_id: "procedural-graph-mesh"
+  repository_path: "../.."
+  repository_commit: "HEAD"
+  output_dir: "../runs"
   seed: 42
-  num_tasks: 20
-  users:
-    - user_a
-    - user_b
-    - user_c
-    - user_d
+  repetitions: 1
+  bootstrap_samples: 1000
+  agent:
+    command:
+      - "{runner_python}"
+      - "{runner_root}/experiments/agents/demo_agent.py"
+    model: "deterministic-demo-agent"
+    timeout_seconds: 30
+  tasks:
+    - task_id: "evaluation_reader"
+      split: "evaluation"
+      user_id: "consumer_c"
+      prompt: "Read the project README and identify the package entry points."
+      test_command:
+        - "{runner_python}"
+        - "-c"
+        - "from pathlib import Path; assert Path('README.md').is_file()"
+    - task_id: "producer_reader_a"
+      split: "producer"
+      user_id: "producer_a"
+      prompt: "Read the project README and identify the package entry points."
+      test_command:
+        - "{runner_python}"
+        - "-c"
+        - "from pathlib import Path; assert Path('README.md').is_file()"
+    - task_id: "producer_reader_b"
+      split: "producer"
+      user_id: "producer_b"
+      prompt: "Read the project README and identify the package entry points."
+      test_command:
+        - "{runner_python}"
+        - "-c"
+        - "from pathlib import Path; assert Path('README.md').is_file()"

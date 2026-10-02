@@ -16,14 +16,17 @@ class KnowledgeRetrievalAPI:
         project_id: str,
         task_description: str,
         relevant_files: Optional[List[str]] = None,
+        repository_version: Optional[str] = None,
+        consumer_user_id: Optional[str] = None,
+        task_id: Optional[str] = None,
+        experiment_run_id: Optional[str] = None,
     ) -> List[ProcedureNode]:
         """Return the best matching procedures for a project and task."""
-        if not project_id:
-            return []
-
-        project_nodes = self.store.get_subgraph_by_scope(scope=project_id)
-        if not project_nodes:
-            return []
+        project_nodes = (
+            self.store.get_subgraph_by_scope(scope=project_id)
+            if project_id and repository_version
+            else []
+        )
 
         query_terms = self._tokenize(task_description or "")
         file_terms = {
@@ -34,7 +37,29 @@ class KnowledgeRetrievalAPI:
 
         scored_nodes: List[Tuple[ProcedureNode, float]] = []
         for node in project_nodes:
-            if node.confidence < 0.7 or node.evidence_count < 1:
+            if (
+                node.validation_status != "validated"
+                or node.evidence_count < 2
+                or node.confidence < 0.7
+                or len(
+                    {
+                        evidence.user_id
+                        for evidence in node.evidence
+                        if evidence.successful
+                        and evidence.repository_version == node.repository_version
+                    }
+                ) < 2
+                or len(
+                    {
+                        evidence.trajectory_id
+                        for evidence in node.evidence
+                        if evidence.successful
+                        and evidence.repository_version == node.repository_version
+                    }
+                ) < 2
+            ):
+                continue
+            if node.repository_version != repository_version:
                 continue
 
             node_terms = self._tokenize(
@@ -58,7 +83,15 @@ class KnowledgeRetrievalAPI:
             reverse=True,
         )
 
-        self._log_retrieval(project_id, task_description, [node for node, _ in scored_nodes])
+        self._log_retrieval(
+            project_id,
+            task_description,
+            [node for node, _ in scored_nodes],
+            repository_version,
+            consumer_user_id,
+            task_id,
+            experiment_run_id,
+        )
         return [node for node, _ in scored_nodes]
 
     def _log_retrieval(
@@ -66,10 +99,21 @@ class KnowledgeRetrievalAPI:
         project_id: str,
         task_description: str,
         retrieved_nodes: List[ProcedureNode],
+        repository_version: Optional[str],
+        consumer_user_id: Optional[str],
+        task_id: Optional[str],
+        experiment_run_id: Optional[str],
     ) -> None:
-        """Keep the retrieval trace lightweight for experiments and debugging."""
-        if not retrieved_nodes:
-            return
+        """Record exposed procedure IDs without persisting the task prompt."""
+        self.store.record_retrieval_event(
+            project_id=project_id,
+            task_description=task_description,
+            procedure_ids=[node.procedure_id for node in retrieved_nodes],
+            repository_version=repository_version,
+            consumer_user_id=consumer_user_id,
+            task_id=task_id,
+            experiment_run_id=experiment_run_id,
+        )
 
     @staticmethod
     def _tokenize(text: str) -> Set[str]:

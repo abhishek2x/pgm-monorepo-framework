@@ -1,50 +1,56 @@
 # Procedural Graph Mesh for Team Agents
 
-This project is a small prototype for a procedural graph system that watches agent work, turns successful experiences into reusable procedures, and lets future tasks pull back only the patterns that are relevant to their project and goal.
+This repository contains an experimental service and harness for studying whether coding-agent experience can be turned into project-scoped procedures that help later agents. It is research infrastructure in progress, not a production-ready service or evidence that the hypothesis is true.
 
-The code is intentionally compact. It is meant to show the shape of the system rather than act as a full production product.
+## What is implemented
 
-## What it does
+- Versioned trajectories with stable IDs and linked procedure evidence.
+- SQLite-backed trajectory archival and retryable job state.
+- A background learning worker and SQL-persisted procedure graph.
+- Retrieval filtered by project, exact repository revision, validation state, and independent source evidence.
+- Retrieval exposure logs that store procedure IDs and a task hash rather than task prompt text.
+- A four-condition experiment runner: independent, shared history, static repository graph, and procedural graph.
+- Per-task worktrees, objective command checks, run manifests, raw artifacts, metrics, and paired bootstrap summaries.
 
-The service has four main parts:
+The extractor currently preserves observed action sequences and the validator uses exact-match rules. These are baselines for experimentation, not mature generalization or knowledge-quality solutions.
 
-- Agent adapters that collect a task trajectory.
-- A learning pipeline that turns the raw trajectory into a candidate procedure.
-- A validation step that prevents a single user from creating team-wide certainty too early.
-- A project-scoped retrieval API that returns only relevant procedures.
+## Setup
 
-## Project layout
-
-- src/cls/agents: adapter interfaces for real and mock agents
-- src/cls/ingestion: trajectory schemas and storage helpers
-- src/cls/learning: analysis, extraction, validation, and update steps
-- src/cls/graph: in-memory graph model and retrieval API
-- src/cls/service: async worker and FastAPI endpoints
-- experiments: benchmark runner and config examples
-- tests: verification for validation and leakage rules
-
-## Quick start
-
-From the repository root:
+Use Python 3.10 or newer. From the repository root:
 
 ```bash
-PYTHONPATH=src ./venv/bin/python -m pytest -q
+python3.12 -m venv .venv
+.venv/bin/python -m pip install -e '.[dev]'
 ```
 
-If you want to run the example benchmark script:
+Run the tests:
 
 ```bash
-PYTHONPATH=src python experiments/run.py --config experiments/configs/pilot.yaml
+PYTHONPATH=src .venv/bin/python -m pytest -q
 ```
 
-## Design notes
+Run the API locally:
 
-The key rule is that a single successful run does not become shared team knowledge automatically. The validator keeps confidence low until there is repeated evidence or a second user confirms the same pattern.
+```bash
+PYTHONPATH=src .venv/bin/uvicorn cls.service.api:app --reload
+```
 
-The graph is also namespace-scoped. Procedures are only returned when the current project matches the scope of the stored procedure, which keeps unrelated projects isolated.
+The service uses `DATABASE_URL` when set; otherwise it creates `procedural_graph_mesh.db` in the current directory.
 
-## Why this exists
+## Experiment harness
 
-The project is trying to test a simple idea: if agent activity is converted into reusable procedures, later work can benefit from that experience without simply replaying raw logs.
+The bundled configuration is only a deterministic smoke test. It checks that the runner, worktrees, four conditions, and artifact writing function; it does not measure agent performance and must not be cited as research evidence.
 
-It is not a complete memory system or a production-grade graph database. It is a workable prototype for the core learning loop.
+```bash
+PYTHONPATH=src .venv/bin/python -m experiments.run --config experiments/configs/pilot.yaml
+```
+
+A run is written beneath `experiments/runs/`. It includes the config and manifest, task manifest, per-task trajectories and outcomes, candidate procedures, learned graphs, retrieval events, logs, `results.json`, `metrics.csv`, and `analysis.json`.
+
+For a research run, configure a pinned agent container image and a digest-pinned oracle image. Both run without network access; the agent receives only its task worktree, while the oracle receives a read-only view. Agent commands receive a JSON object on stdin containing the task, memory context, and seed, and must return a JSON object on stdout. See [IMPLEMENTATION_PLAN.md](IMPLEMENTATION_PLAN.md) for the research protocol and publication gates.
+
+The reported transfer measure is based on procedure IDs an agent says it used. Exposure or self-reported use is not, by itself, causal evidence of benefit. The primary comparison should be objective task success between controlled arms, with uncertainty and limitations reported.
+
+## Current limits
+
+The repository does not yet include a real model-backed agent integration, a human-labeled extraction-quality set, a powered confirmatory task set, schema migrations, authentication, or operational security controls. The current implementation should not be described as production-ready or as demonstrating a positive research result.
